@@ -48,14 +48,14 @@ void xlinitws(ssize)
 
     /* enter the eof object */
     eof_object = cons(xlenter("**EOF**"),NIL);
-    
+
     /* enter the default object */
     default_object = cons(xlenter("**DEFAULT**"),NIL);
 
     /* initialize the error handlers */
     setvalue(xlenter("*ERROR-HANDLER*"),NIL);
     setvalue(xlenter("*UNBOUND-HANDLER*"),NIL);
-    
+
     /* install the built-in functions */
     for (i = 0, p = funtab; p->fd_subr != NULL; ++i, ++p) {
 	type = (i < xsubrcnt ? XSUBR : (i < csubrcnt ? CSUBR : SUBR));
@@ -82,7 +82,7 @@ void xlinitws(ssize)
     /* setup the print formats for numbers */
     setvalue(s_fixfmt,cvstring(IFMT));
     setvalue(s_flofmt,cvstring(FFMT));
-    
+
     /* build the 'eval' function */
     code = newcode(4); cpush(code);
     setelement(code,0,newstring(0x12));
@@ -140,6 +140,7 @@ pb(OP_CALL); pb(0x00);		/* 000f 0c 00    CALL 00		*/
     setelement(code,6,xlenter("EVAL"));
     setelement(code,7,xlenter("WRITE"));
     setelement(code,8,xlenter("*TOPLEVEL*"));
+    setelement(code,9,xlenter("EXIT"));
     drop(1);
 
     /* store the byte codes */
@@ -158,6 +159,14 @@ pb(OP_SAVE); pb(0x00); pb(0x1a);/* 0013 0b 00 1a SAVE 001a		*/
 pb(OP_GREF); pb(0x05);		/* 0016 05 05    GREF 05 ; read		*/
 pb(OP_CALL); pb(0x00);		/* 0018 0c 00    CALL 00		*/
 pb(OP_PUSH);			/* 001a 10       PUSH			*/
+
+#if 0
+pb(OP_NULL);
+pb(OP_BRF);  pb(0x00); pb(0x23);
+pb(OP_GREF); pb(0x09); /* EXIT */
+pb(OP_CALL); pb(0x00);
+#endif
+
 pb(OP_GREF); pb(0x06);		/* 001b 05 06    GREF 06 ; eval		*/
 pb(OP_CALL); pb(0x01);		/* 001d 0c 01    CALL 01		*/
 pb(OP_PUSH);			/* 001f 10       PUSH			*/
@@ -173,10 +182,10 @@ pb(OP_CALL); pb(0x00);		/* 0026 0c 00    CALL 00		*/
 void xlsymbols()
 {
     LVAL sym;
-    
+
     /* top-level procedure symbol */
     s_eval = xlenter("EVAL");
-    
+
     /* enter the symbols used by the system */
     true         = xlenter("#T");
     s_unbound	 = xlenter("*UNBOUND*");
@@ -186,7 +195,7 @@ void xlsymbols()
     s_stdin  = xlenter("*STANDARD-INPUT*");
     s_stdout = xlenter("*STANDARD-OUTPUT*");
     s_stderr = xlenter("*ERROR-OUTPUT*");
-    
+
     /* enter the symbols used by the printer */
     s_fixfmt = xlenter("*FIXNUM-FORMAT*");
     s_flofmt = xlenter("*FLONUM-FORMAT*");
